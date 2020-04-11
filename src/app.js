@@ -21,8 +21,6 @@ app.post("/repositories", (request, response) => {
 
   repositories.push(respository);
 
-  console.log(repositories);
-
   return response.json(respository);
 });
 
@@ -30,24 +28,25 @@ app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
   const { title, url, techs } = request.body;
 
-  if (!title && !url && !techs) return response.status(400).json();
+  const findRepositoryIndex = repositories.findIndex(
+    (respository) => respository.id === id
+  );
 
-  const repo = repositories.find((r) => r.id === id);
+  if (findRepositoryIndex === -1) {
+    return response.status(400).json({ error: "Repository does not exists" });
+  }
 
-  if (!repo)
-    return response.status(400).json({ message: "Repository not found" });
+  const repository = {
+    id,
+    title: title || repositories[findRepositoryIndex].title,
+    url: url || repositories[findRepositoryIndex].url,
+    techs: techs || repositories[findRepositoryIndex].techs,
+    likes: repositories[findRepositoryIndex].likes,
+  };
 
-  const index = repositories.indexOf(repo);
+  repositories[findRepositoryIndex] = repository;
 
-  repo.title = title ? title : repo.title;
-  repo.url = url ? url : repo.urepol;
-  repo.techs = techs ? techs : repo.techs;
-
-  repositories.splice(index, repo);
-
-  console.log(repositories);
-
-  return response.status(200).json(repo);
+  return response.json(repository);
 });
 
 app.delete("/repositories/:id", (request, response) => {
@@ -58,37 +57,32 @@ app.delete("/repositories/:id", (request, response) => {
       .status(400)
       .json({ message: "You should choose a repository for delete" });
 
-  const repo = repositories.find((r) => r.id === id);
+  const findRepositoryIndex = repositories.findIndex(
+    (respository) => respository.id === id
+  );
 
-  if (!repo)
-    return response.status(400).json({ message: "Repository not found" });
+  if (findRepositoryIndex === -1) {
+    return response.status(400).json({ message: "Repository does not exists" });
+  }
 
-  const index = repositories.indexOf(repo);
+  repositories.splice(findRepositoryIndex, 1);
 
-  repositories.splice(index, 1);
-
-  console.log(repositories);
-
-  return response.status(204).json({ success: true });
+  return response.status(204).send();
 });
 
 app.post("/repositories/:id/like", (request, response) => {
   const { id } = request.params;
 
-  if (!id) return response.status(400).json({});
+  const findRepositoryIndex = repositories.findIndex(
+    (respository) => respository.id === id
+  );
 
-  const repo = repositories.find((r) => r.id === id);
+  if (findRepositoryIndex === -1)
+    return response.status(400).json({ message: "Repository does not exist" });
 
-  if (!repo)
-    return response.status(400).json({ message: "Repository not found" });
+  repositories[findRepositoryIndex].likes++;
 
-  const index = repositories.indexOf(repo);
-
-  repo.likes = repo.likes + 1;
-
-  repositories.splice(index, repo);
-
-  return response.json({ likes: repo.likes });
+  return response.json(repositories[findRepositoryIndex]);
 });
 
 module.exports = app;

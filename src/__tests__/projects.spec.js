@@ -91,7 +91,9 @@ describe("Projects", () => {
         likes: 15,
       });
 
-    expect(response.statusCode).toBe(400);
+    expect(response.body).toMatchObject({
+      likes: 0,
+    });
   });
 
   it("should be able to delete the repository", async () => {
